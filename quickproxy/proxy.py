@@ -342,6 +342,7 @@ def run_proxy(port,
               err_callback=DEFAULT_CALLBACK,
               test_ssl=False,
               start_ioloop=True,
+              num_workers=0,
               debug_level=0):
 
     """
@@ -381,7 +382,10 @@ def run_proxy(port,
         kwargs = {}
 
     http_server = tornado.httpserver.HTTPServer(app, **kwargs)
-    http_server.listen(port)     
+
+    http_server.bind(port)
+    http_server.start(num_workers)
+
     ioloop = tornado.ioloop.IOLoop.instance()
     if start_ioloop:
         print ("Starting HTTP proxy on port %d" % port)
