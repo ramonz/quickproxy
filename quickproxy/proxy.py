@@ -178,6 +178,12 @@ def _make_proxy(methods, req_callback, resp_callback, err_callback, debug_level=
                                                               requestobj.port or 80,
                                                               requestobj.path)
 
+            # tornado 4.x error ValueError('Body must be None for GET request') fix
+            body_expected = requestobj.method in ('POST', 'PATCH', 'PUT')
+            body_present = requestobj.body is not None
+            if body_present and not body_expected:
+                requestobj.body = None
+
             modrequestobj = req_callback(requestobj)
 
             if isinstance(modrequestobj, ResponseObj):
@@ -264,7 +270,8 @@ def _make_proxy(methods, req_callback, resp_callback, err_callback, debug_level=
             for key in header_keys:
                 if key.lower() == "set-cookie":
                     cookies = Cookie.BaseCookie()
-                    cookies.load(tornado.escape.native_str(mod.headers.get(key)))
+                    for c in mod.headers.get_list('Set-Cookie'):
+                        cookies.load(tornado.escape.native_str(c))
                     for cookie_key in cookies:
                         cookie = cookies[cookie_key]
                         params = dict(cookie)
