@@ -227,6 +227,15 @@ def _make_proxy(methods, req_callback, resp_callback, err_callback, debug_level=
                     access_log.debug('<<<<<<<< RESPONSE <<<<<<<\n%s' %
                                      pprint.pformat(response.__dict__))
 
+                # if content was gzipped we should remove the headers:
+                # > Content-Encoding: gzip
+                # > Transfer-Encoding: chunked
+                # otherwise we get chunked-encoding error
+                if 'gzip' in response.headers['Content-Encoding']:
+                    del response.headers['Content-Encoding']
+                    if 'Transfer-Encoding' in response.headers:
+                        del response.headers['Transfer-Encoding']
+
                 responseobj = ResponseObj(
                     code=response.code,
                     headers=response.headers,
@@ -385,7 +394,7 @@ def run_proxy(port,
 
     ioloop = tornado.ioloop.IOLoop.instance()
     if start_ioloop:
-        app_log.info('Starting HTTP proxy on port %d' % port)
+        app_log.info('Starting HTTP proxy worker on port %d' % port)
         ioloop.start()
     return app
 
@@ -395,5 +404,5 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
 
-    app_log.info('Starting HTTP proxy on port %d' % port)
+    app_log.info('Starting HTTP proxy worker on port %d' % port)
     run_proxy(port)
