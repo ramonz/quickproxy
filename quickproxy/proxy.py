@@ -231,7 +231,7 @@ def _make_proxy(methods, req_callback, resp_callback, err_callback, debug_level=
                 # > Content-Encoding: gzip
                 # > Transfer-Encoding: chunked
                 # otherwise we get chunked-encoding error
-                if 'gzip' in response.headers['Content-Encoding']:
+                if 'gzip' in response.headers.get('Content-Encoding', ''):
                     del response.headers['Content-Encoding']
                     if 'Transfer-Encoding' in response.headers:
                         del response.headers['Transfer-Encoding']
